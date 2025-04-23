@@ -1,14 +1,30 @@
 import { useState } from "react";
 import Player from "./components/Player.jsx";
 import GameBoard from "./components/GameBoard.jsx";
+import Log from "./components/log.jsx";
 function App() {
   // Managing state of currently active player (X or O player)
   const [currPlayer, setCurrPlayer] = useState('X');
+  
+  // Managing state of the game's turn data
+  const [turnData, setTurnData] = useState([]);
 
   // 'Lifting state up' of currently active player, as it's used by both Player + GameBoard
-  // Changes which player is currently active depending on previous state
-  function handleSelectSquare(){
+  function handleSelectSquare(rowIndex, colIndex){
+     // Changes which player is currently active depending on previous state
     setCurrPlayer((currentPlayerSymbol) => currentPlayerSymbol == 'X' ? 'O' : 'X');
+    // Keeps track of player turns for logging feature
+    setTurnData(prevTurns => {
+      // Create a player var to avoid intersecting states
+      let currentPlayer = 'X';
+      if(prevTurns.length > 0 && prevTurns[0].player == 'X'){
+        currentPlayer = 'O';
+      }
+      // Create a deep copy of existing turns
+      // First param is a JS object consisting of square and player arguments
+      const updatedTurns = [{square: {row: rowIndex, col: colIndex}, player: currentPlayer},...prevTurns];
+      return updatedTurns;
+    });
   }
   return (
    <main>
@@ -18,9 +34,9 @@ function App() {
         <Player initialName="Player 1" symbol="X" isActive={currPlayer == 'X'}/>
         <Player initialName="Player 2" symbol="O" isActive={currPlayer == 'O'}/>
       </ol>
-      <GameBoard onSelectSquare={handleSelectSquare} currSymbol={currPlayer}/>
+      <GameBoard onSelectSquare={handleSelectSquare} turns={turnData}/>
     </div>
-    LOG
+    <Log turns={turnData}/>
    </main>
   )
 }
